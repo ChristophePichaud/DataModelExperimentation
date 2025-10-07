@@ -8,6 +8,34 @@ namespace TrainingDataModel.Data
     /// </summary>
     public class TrainingDbContext : DbContext
     {
+        // Static method for initial data seeding
+        private static void SeedInitialData(ModelBuilder modelBuilder)
+        {
+            // Super AdminUser
+            var staticCreatedAt = new DateTime(2025, 10, 7, 0, 0, 0, DateTimeKind.Utc);
+            modelBuilder.Entity<AdminUser>().HasData(new AdminUser
+            {
+                Id = 1,
+                Email = "sa@corp.com",
+                Username = "Super Admin",
+                Name = "Super Admin",
+                CustomerId = null, // Not linked to a specific customer
+                CreatedAt = staticCreatedAt,
+                UpdatedAt = null
+            });
+
+            // Initial data seeding for User entity
+            modelBuilder.Entity<User>().HasData(new User
+            {
+                Id = 1,
+                Name = "Super Admin",
+                Email = "sa@corp.com",
+                Password = "admin", // Replace with hashed password in production
+                UserType = UserType.SuperAdmin,
+                CreatedAt = staticCreatedAt,
+                UpdatedAt = null
+            });
+        }
         public TrainingDbContext(DbContextOptions<TrainingDbContext> options)
             : base(options)
         {
@@ -25,10 +53,22 @@ namespace TrainingDataModel.Data
         public DbSet<DailyUsageStatistic> DailyUsageStatistics { get; set; } = null!;
         public DbSet<AdminUser> AdminUsers { get; set; } = null!;
         public DbSet<RdpFile> RdpFiles { get; set; } = null!;
+        public DbSet<User> Users { get; set; } = null!;
+        public DbSet<Trainer> Trainers { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // Configure Trainer entity
+            modelBuilder.Entity<Trainer>(entity =>
+            {
+                entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
+                entity.HasOne(e => e.Customer)
+                    .WithMany(c => c.Trainers)
+                    .HasForeignKey(e => e.CustomerId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
 
             // Configure Customer entity
             modelBuilder.Entity<Customer>(entity =>
@@ -132,6 +172,19 @@ namespace TrainingDataModel.Data
             {
                 entity.HasIndex(e => e.FileName);
             });
+
+            // Configure User entity
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasIndex(e => e.Email).IsUnique();
+                entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.Email).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.Password).HasMaxLength(256).IsRequired();
+                entity.Property(e => e.UserType).IsRequired();
+            });
+
+            // Call static method to seed initial data only once
+            SeedInitialData(modelBuilder);
         }
     }
 }

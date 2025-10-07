@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrainingDataModel", "Traini
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrainingDataModel.Example", "TrainingDataModel.Example\TrainingDataModel.Example.csproj", "{3690135F-E91E-4DA4-896A-B9C5BCFE4517}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrainingDataModel.Migrations", "TrainingDataModel.Migrations\TrainingDataModel.Migrations.csproj", "{NEW_GUID_HERE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

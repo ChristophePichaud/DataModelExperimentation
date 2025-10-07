@@ -23,10 +23,10 @@ class Program
             builder.SetMinimumLevel(LogLevel.Information);
         });
 
-        // Add the TrainingDbContext with an in-memory database for demonstration
-        // In production, replace this with a real PostgreSQL connection string
+        // Add the TrainingDbContext with PostgreSQL database
+        var connectionString = "Host=localhost;Database=trainingdbExp;Username=postgres;Password=admin";
         services.AddDbContext<TrainingDbContext>(options =>
-            options.UseInMemoryDatabase("TrainingDemoDb"));
+            options.UseNpgsql(connectionString));
 
         var serviceProvider = services.BuildServiceProvider();
 
@@ -92,7 +92,8 @@ class Program
             Name = "Acme Corporation",
             Email = "contact@acme.com",
             Phone = "+1-555-0100",
-            Address = "123 Business St, Tech City, TC 12345"
+            Address = "123 Business St, Tech City, TC 12345",
+            CreatedAt = DateTime.UtcNow
         };
 
         context.Customers.Add(customer);
@@ -105,7 +106,7 @@ class Program
             Email = "john.admin@acme.com",
             Username = "jadmin",
             CustomerId = customer.Id,
-            IsTrainingAgencyAdmin = false
+            CreatedAt = DateTime.UtcNow
         };
 
         var agencyAdmin = new AdminUser
@@ -113,10 +114,39 @@ class Program
             Name = "Sarah Agency",
             Email = "sarah@trainingagency.com",
             Username = "sagency",
-            IsTrainingAgencyAdmin = true
+            CreatedAt = DateTime.UtcNow
         };
 
         context.AdminUsers.AddRange(adminUser, agencyAdmin);
+        await context.SaveChangesAsync();
+        // Create Users
+        var superUser = new User
+        {
+            Name = "Super Admin2",
+            Email = "sa2@corp.com",
+            Password = "admin", // Replace with hashed password in production
+            UserType = UserType.SuperAdmin,
+            CreatedAt = DateTime.UtcNow
+        };
+        var trainerUser = new User
+        {
+            Name = "Trainer Bob",
+            Email = "bob.trainer@acme.com",
+            Password = "trainerpass",
+            UserType = UserType.Trainer,
+            CreatedAt = DateTime.UtcNow
+        };
+        context.Users.AddRange(superUser, trainerUser);
+        await context.SaveChangesAsync();
+
+        // Create Trainers
+        var trainer = new Trainer
+        {
+            Name = "Bob Trainer",
+            CustomerId = customer.Id,
+            CreatedAt = DateTime.UtcNow
+        };
+        context.Trainers.Add(trainer);
         await context.SaveChangesAsync();
 
         // Create Students
@@ -125,7 +155,8 @@ class Program
             Name = "Alice Developer",
             Email = "alice@acme.com",
             Phone = "+1-555-0101",
-            CustomerId = customer.Id
+            CustomerId = customer.Id,
+            CreatedAt = DateTime.UtcNow
         };
 
         var student2 = new Student
@@ -133,7 +164,8 @@ class Program
             Name = "Bob Engineer",
             Email = "bob@acme.com",
             Phone = "+1-555-0102",
-            CustomerId = customer.Id
+            CustomerId = customer.Id,
+            CreatedAt = DateTime.UtcNow
         };
 
         context.Students.AddRange(student1, student2);
@@ -146,7 +178,8 @@ class Program
             Description = "Comprehensive introduction to .NET 9 development",
             DurationHours = 40,
             Price = 2500.00m,
-            RequiresVm = true
+            RequiresVm = true,
+            CreatedAt = DateTime.UtcNow
         };
 
         var cloudCourse = new TrainingCourse
@@ -155,7 +188,8 @@ class Program
             Description = "Learn cloud computing principles and Azure services",
             DurationHours = 32,
             Price = 3000.00m,
-            RequiresVm = true
+            RequiresVm = true,
+            CreatedAt = DateTime.UtcNow
         };
 
         context.TrainingCourses.AddRange(dotnetCourse, cloudCourse);
@@ -170,7 +204,8 @@ class Program
                 Description = "Overview of the .NET ecosystem",
                 OrderNumber = 1,
                 DurationHours = 8,
-                TrainingCourseId = dotnetCourse.Id
+                TrainingCourseId = dotnetCourse.Id,
+                CreatedAt = DateTime.UtcNow
             },
             new Module
             {
@@ -178,7 +213,8 @@ class Program
                 Description = "Core C# programming concepts",
                 OrderNumber = 2,
                 DurationHours = 16,
-                TrainingCourseId = dotnetCourse.Id
+                TrainingCourseId = dotnetCourse.Id,
+                CreatedAt = DateTime.UtcNow
             },
             new Module
             {
@@ -186,7 +222,8 @@ class Program
                 Description = "Building web applications with ASP.NET Core",
                 OrderNumber = 3,
                 DurationHours = 16,
-                TrainingCourseId = dotnetCourse.Id
+                TrainingCourseId = dotnetCourse.Id,
+                CreatedAt = DateTime.UtcNow
             }
         };
 
@@ -200,7 +237,8 @@ class Program
             IpAddress = "10.0.1.10",
             Status = "Running",
             TrainingCourseId = dotnetCourse.Id,
-            VmTypeId = windowsType.Id
+            VmTypeId = windowsType.Id,
+            CreatedAt = DateTime.UtcNow
         };
 
         var vm2 = new VirtualMachine
@@ -209,7 +247,8 @@ class Program
             IpAddress = "10.0.1.11",
             Status = "Running",
             TrainingCourseId = cloudCourse.Id,
-            VmTypeId = linuxType.Id
+            VmTypeId = linuxType.Id,
+            CreatedAt = DateTime.UtcNow
         };
 
         context.VirtualMachines.AddRange(vm1, vm2);
@@ -221,7 +260,8 @@ class Program
             FileName = "training-vm-001.rdp",
             FilePath = "/rdp-files/training-vm-001.rdp",
             VirtualMachineId = vm1.Id,
-            StudentId = student1.Id
+            StudentId = student1.Id,
+            CreatedAt = DateTime.UtcNow
         };
 
         var rdpFile2 = new RdpFile
@@ -229,7 +269,8 @@ class Program
             FileName = "training-vm-002.rdp",
             FilePath = "/rdp-files/training-vm-002.rdp",
             VirtualMachineId = vm2.Id,
-            StudentId = student2.Id
+            StudentId = student2.Id,
+            CreatedAt = DateTime.UtcNow
         };
 
         context.RdpFiles.AddRange(rdpFile1, rdpFile2);
@@ -241,21 +282,21 @@ class Program
             new DailyUsageStatistic
             {
                 VirtualMachineId = vm1.Id,
-                UsageDate = DateTime.Today.AddDays(-1),
+                UsageDate = DateTime.UtcNow.AddDays(-1),
                 HoursUsed = 8.5m,
                 Cost = 34.00m
             },
             new DailyUsageStatistic
             {
                 VirtualMachineId = vm1.Id,
-                UsageDate = DateTime.Today,
+                UsageDate = DateTime.UtcNow,
                 HoursUsed = 6.0m,
                 Cost = 24.00m
             },
             new DailyUsageStatistic
             {
                 VirtualMachineId = vm2.Id,
-                UsageDate = DateTime.Today.AddDays(-1),
+                UsageDate = DateTime.UtcNow.AddDays(-1),
                 HoursUsed = 7.0m,
                 Cost = 28.00m
             }
@@ -269,10 +310,11 @@ class Program
         {
             InvoiceNumber = "INV-2024-001",
             CustomerId = customer.Id,
-            InvoiceDate = DateTime.Today,
-            DueDate = DateTime.Today.AddDays(30),
+            InvoiceDate = DateTime.UtcNow.Date,
+            DueDate = DateTime.UtcNow.Date.AddDays(30),
             TotalAmount = 5500.00m,
-            Status = "Pending"
+            Status = "Pending",
+            CreatedAt = DateTime.UtcNow
         };
 
         context.BillingInvoices.Add(invoice);

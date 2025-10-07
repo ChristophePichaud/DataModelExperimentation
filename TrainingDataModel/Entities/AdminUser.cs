@@ -31,8 +31,6 @@ namespace TrainingDataModel.Entities
         [Column("customer_id")]
         public int? CustomerId { get; set; }
 
-        [Column("is_training_agency_admin")]
-        public bool IsTrainingAgencyAdmin { get; set; } = false;
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

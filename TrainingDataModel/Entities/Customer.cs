@@ -38,9 +38,10 @@ namespace TrainingDataModel.Entities
         [Column("updated_at")]
         public DateTime? UpdatedAt { get; set; }
 
-        // Navigation properties
-        public ICollection<Student> Students { get; set; } = new List<Student>();
-        public ICollection<AdminUser> AdminUsers { get; set; } = new List<AdminUser>();
-        public ICollection<BillingInvoice> BillingInvoices { get; set; } = new List<BillingInvoice>();
+    // Navigation properties
+    public ICollection<Student> Students { get; set; } = new List<Student>();
+    public ICollection<AdminUser> AdminUsers { get; set; } = new List<AdminUser>();
+    public ICollection<BillingInvoice> BillingInvoices { get; set; } = new List<BillingInvoice>();
+    public ICollection<Trainer> Trainers { get; set; } = new List<Trainer>();
     }
 }
