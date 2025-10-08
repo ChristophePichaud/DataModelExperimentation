@@ -41,7 +41,7 @@ entity "Module" as Module {
   isPython : bool
   isJava : bool
   isoffice : bool
-  *VirtualMachineId : int
+  *VirtualMachineModelId : int
   *ModuleId : int
   *CustomerVMProcessId : int
 }
@@ -51,12 +51,15 @@ entity "RdpFile" as RdpFile {
   Path : string
   UserId : int
   CreatedAt : DateTime
+  *VirtualMachineId : int
 }
 
-entity "Student" as Student {
+entity "SSHFile" as SSHFile {
   *Id : int
+  Path : string
   UserId : int
-  EnrollmentDate : DateTime
+  CreatedAt : DateTime
+  *VirtualMachineId : int
 }
 
 entity "Trainer" as Trainer {
@@ -81,9 +84,10 @@ entity "TrainingCourse" as TrainingCourse {
 }
 
 entity "StudentTrainingCourse" as StudentTrainingCourse {
-  *StudentId : int
+  *UserId : int
   *TrainingCourseId : int
   EnrollmentDate : DateTime
+  *VirtualMachineId : int
 }
 
 entity "User" as User {
@@ -92,6 +96,7 @@ entity "User" as User {
   Email : string
   Role : string
   CreatedAt : DateTime
+  isTrainer : bool
 }
 
 entity "VirtualMachine" as VirtualMachine {
@@ -140,24 +145,21 @@ Customer --{ BillingInvoice : "1 to many"
 Customer --{ AdminUser : "1 to many"
 Customer --{ User : "1 to many (if users are customers)"
 User --{ DailyUsageStatistic : "1 to many"
-User --{ RdpFile : "1 to many"
-User --{ VirtualMachine : "1 to many (Owner)"
+StudentTrainingCourse --{ VirtualMachine : "1 to many (Owner)"
 User --{ AdminUser : "1 to many (User link)"
-User --{ Student : "1 to many (User link)"
 User --{ Trainer : "1 to many (User link)"
 VirtualMachine -- VmType : "many to 1"
 VirtualMachine -- VmOption : "many to 1"
 Customer --- VirtualMachineModel : "1 to many"
 Customer --- Module : "1 to many"
 Customer --- CustomerVMProcess : "1 to many"
-Student --{ StudentTrainingCourse : "1 to many"
+User --{ StudentTrainingCourse : "1 to many"
 TrainingCourse --{ StudentTrainingCourse : "1 to many"
-StudentTrainingCourse }-- Student
 StudentTrainingCourse }-- TrainingCourse
-Trainer --{ TrainerTrainingCourse : "1 to many"
 TrainingCourse --{ TrainerTrainingCourse : "1 to many"
 TrainerTrainingCourse }-- Trainer
 TrainerTrainingCourse }-- TrainingCourse
 Module -- DailyUsageStatistic : "1 to many"
 Module --{ TrainingCourse : "1 to many"
+Module --{ Trainer : "1 to many"
 @enduml
