@@ -15,15 +15,13 @@ namespace TrainingDataModel.Entities
         [Column("id")]
         public int Id { get; set; }
 
-        [Required]
-        [MaxLength(200)]
-        [Column("name")]
-        public string Name { get; set; } = string.Empty;
 
-        [Required]
-        [MaxLength(100)]
-        [Column("email")]
-        public string Email { get; set; } = string.Empty;
+    [Required]
+    [Column("user_id")]
+    public int UserId { get; set; }
+
+    [ForeignKey("UserId")]
+    public User User { get; set; } = null!;
 
         [MaxLength(50)]
         [Column("phone")]

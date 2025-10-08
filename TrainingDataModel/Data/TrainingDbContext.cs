@@ -43,18 +43,19 @@ namespace TrainingDataModel.Data
 
         // DbSets for all entities
         public DbSet<Customer> Customers { get; set; } = null!;
-        public DbSet<Student> Students { get; set; } = null!;
-        public DbSet<TrainingCourse> TrainingCourses { get; set; } = null!;
+    public DbSet<Student> Students { get; set; } = null!;
+    public DbSet<TrainingCourse> TrainingCourses { get; set; } = null!;
+    public DbSet<StudentTrainingCourse> StudentTrainingCourses { get; set; } = null!;
         public DbSet<Module> Modules { get; set; } = null!;
         public DbSet<VmType> VmTypes { get; set; } = null!;
         public DbSet<VmOption> VmOptions { get; set; } = null!;
         public DbSet<VirtualMachine> VirtualMachines { get; set; } = null!;
         public DbSet<BillingInvoice> BillingInvoices { get; set; } = null!;
         public DbSet<DailyUsageStatistic> DailyUsageStatistics { get; set; } = null!;
-        public DbSet<AdminUser> AdminUsers { get; set; } = null!;
-        public DbSet<RdpFile> RdpFiles { get; set; } = null!;
-        public DbSet<User> Users { get; set; } = null!;
-        public DbSet<Trainer> Trainers { get; set; } = null!;
+    public DbSet<AdminUser> AdminUsers { get; set; } = null!;
+    public DbSet<RdpFile> RdpFiles { get; set; } = null!;
+    public DbSet<User> Users { get; set; } = null!;
+    public DbSet<Trainer> Trainers { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -63,10 +64,14 @@ namespace TrainingDataModel.Data
             // Configure Trainer entity
             modelBuilder.Entity<Trainer>(entity =>
             {
-                entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.UserId).IsRequired();
                 entity.HasOne(e => e.Customer)
                     .WithMany(c => c.Trainers)
                     .HasForeignKey(e => e.CustomerId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
@@ -91,11 +96,20 @@ namespace TrainingDataModel.Data
             // Configure Student entity
             modelBuilder.Entity<Student>(entity =>
             {
-                entity.HasIndex(e => e.Email).IsUnique();
+                entity.Property(e => e.UserId).IsRequired();
                 entity.HasMany(e => e.RdpFiles)
                     .WithOne(e => e.Student)
                     .HasForeignKey(e => e.StudentId)
                     .OnDelete(DeleteBehavior.SetNull);
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                // Many-to-many: Student <-> TrainingCourse
+                entity.HasMany<StudentTrainingCourse>()
+                    .WithOne()
+                    .HasForeignKey(stc => stc.StudentId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             // Configure TrainingCourse entity
@@ -110,6 +124,23 @@ namespace TrainingDataModel.Data
                     .WithOne(e => e.TrainingCourse)
                     .HasForeignKey(e => e.TrainingCourseId)
                     .OnDelete(DeleteBehavior.SetNull);
+                // Many-to-many: TrainingCourse <-> Student
+                entity.HasMany<StudentTrainingCourse>()
+                    .WithOne()
+                    .HasForeignKey(stc => stc.TrainingCourseId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure StudentTrainingCourse join entity
+            modelBuilder.Entity<StudentTrainingCourse>(entity =>
+            {
+                entity.HasKey(e => new { e.StudentId, e.TrainingCourseId });
+                entity.HasOne<Student>()
+                    .WithMany()
+                    .HasForeignKey(e => e.StudentId);
+                entity.HasOne<TrainingCourse>()
+                    .WithMany()
+                    .HasForeignKey(e => e.TrainingCourseId);
             });
 
             // Configure Module entity
@@ -163,7 +194,11 @@ namespace TrainingDataModel.Data
             // Configure AdminUser entity
             modelBuilder.Entity<AdminUser>(entity =>
             {
-                entity.HasIndex(e => e.Email).IsUnique();
+                entity.Property(e => e.UserId).IsRequired();
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
                 entity.HasIndex(e => e.Username).IsUnique();
             });
 
