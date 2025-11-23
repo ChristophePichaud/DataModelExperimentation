@@ -1,11 +1,14 @@
 @startuml TrainingDataModel_Full
 ' Full database diagram for TrainingDataModel
 
-entity "AdminUser" as AdminUser {
+entity "User" as User {
   *Id : int
-  UserId : int
+  Name : string
+  Email : string
+  Role : string
   CreatedAt : DateTime
-  IsActive : bool
+  IsTrainer : bool
+  IsAdminUser : bool
 }
 
 entity "BillingInvoice" as BillingInvoice {
@@ -22,7 +25,11 @@ entity "Customer" as Customer {
   Name : string
   Email : string
   Address : string
+  PostalCode : string
+  City : string
+  Country : string
   Phone : string
+  LogoImagePath : string
 }
 
 entity "DailyUsageStatistic" as DailyUsageStatistic {
@@ -30,26 +37,40 @@ entity "DailyUsageStatistic" as DailyUsageStatistic {
   Date : DateTime
   Usage : decimal
   UserId : int
-  ModuleId : int
+  RegisteredModuleId : int
 }
 
-entity "Module" as Module {
+
+entity "RegisteredCourse" as RegisteredCourse {
   *Id : int
-  Name : string
+  Title : string
   Description : string
-  isCPP : bool
-  isPython : bool
-  isJava : bool
-  isoffice : bool
-  *VirtualMachineModelId : int
-  *ModuleId : int
-  *CustomerVMProcessId : int
+  StartDate : DateTime
+  EndDate : DateTime
+  CustomerId : int
+  TrainerId : int
 }
 
-entity "RdpFile" as RdpFile {
+entity "RegisteredModule" as RegisteredModule {
+  *Id : int
+  Title : string
+  Description : string
+  StartDate : DateTime
+  EndDate : DateTime
+  RegisteredCourseId : int
+  TrainerId : int
+}
+
+entity "StudentEnrollment" as StudentEnrollment {
+  *Id : int
+  *UserId : int
+  *RegisteredCourseId : int
+  *VirtualMachineId : int
+}
+
+entity "RDPFile" as RDPFile {
   *Id : int
   Path : string
-  UserId : int
   CreatedAt : DateTime
   *VirtualMachineId : int
 }
@@ -57,61 +78,45 @@ entity "RdpFile" as RdpFile {
 entity "SSHFile" as SSHFile {
   *Id : int
   Path : string
-  UserId : int
   CreatedAt : DateTime
   *VirtualMachineId : int
-}
-
-entity "Trainer" as Trainer {
-  *Id : int
-  UserId : int
-  HireDate : DateTime
-}
-
-entity "TrainerTrainingCourse" as TrainerTrainingCourse {
-  *TrainerId : int
-  *TrainingCourseId : int
-}
-
-entity "TrainingCourse" as TrainingCourse {
-  *Id : int
-  Title : string
-  Description : string
-  StartDate : DateTime
-  EndDate : DateTime
-  *ModuleId : int
-  
-}
-
-entity "StudentTrainingCourse" as StudentTrainingCourse {
-  *UserId : int
-  *TrainingCourseId : int
-  EnrollmentDate : DateTime
-  *VirtualMachineId : int
-}
-
-entity "User" as User {
-  *Id : int
-  Name : string
-  Email : string
-  Role : string
-  CreatedAt : DateTime
-  isTrainer : bool
 }
 
 entity "VirtualMachine" as VirtualMachine {
   *Id : int
   Name : string
+  VMImageReferenceId : int
   VmTypeId : int
-  VmOptionId : int
-  OwnerUserId : int
+  VMUsagePropertiesId : int
+  VMPropertiesId : int
+  RDPFileId : int
+  SSHFileId : int
+  UserId : int
   CreatedAt : DateTime
 }
 
-entity "CustomerVMProcess" as CustomerVMProcess {
+entity "VMImageReference" as VMImageReference {
   *Id : int
   Name : string
+  Publisher : string
+  Offer : string
+  Sku : string
+  Version : string
   CreatedAt : DateTime
+}
+
+entity "VMType" as VMType {
+  *Id : int
+  Name : string
+  AzureName : string
+  CpuCores : int
+  MemoryInGB : int
+  CreatedAt : DateTime
+}
+
+entity "VMUsageProperties" as VMUsageProperties {
+  *Id : int
+  Name : string
   PreferedStartTime : Time
   PreferedEndTime : Time
   PreferedDailyHourUsage : int
@@ -119,47 +124,37 @@ entity "CustomerVMProcess" as CustomerVMProcess {
 }
 
 
-entity "VirtualMachineModel" as VirtualMachineModel {
+entity "VMProperties" as VMProperties {
   *Id : int
   Name : string
+  Description : string
+  IsWindows11 : bool
+  IsOffice2021 : bool
+  IsTerraformInstalled : bool
+  IsPhotoshopInstalled : bool
   CreatedAt : DateTime
-  isOffice2021 : bool
-  isTerraformInstalled : bool
-  isPhotoshopInstalled : bool
 }
 
-entity "VmOption" as VmOption {
-  *Id : int
-  OptionName : string
-  Description : string
-}
-
-entity "VmType" as VmType {
-  *Id : int
-  TypeName : string
-  Description : string
-}
 
 '"Relationships"
 Customer --{ BillingInvoice : "1 to many"
-Customer --{ AdminUser : "1 to many"
-Customer --{ User : "1 to many (if users are customers)"
+Customer --{ User : "1 to many"
+
 User --{ DailyUsageStatistic : "1 to many"
-StudentTrainingCourse --{ VirtualMachine : "1 to many (Owner)"
-User --{ AdminUser : "1 to many (User link)"
-User --{ Trainer : "1 to many (User link)"
-VirtualMachine -- VmType : "many to 1"
-VirtualMachine -- VmOption : "many to 1"
-Customer --- VirtualMachineModel : "1 to many"
-Customer --- Module : "1 to many"
-Customer --- CustomerVMProcess : "1 to many"
-User --{ StudentTrainingCourse : "1 to many"
-TrainingCourse --{ StudentTrainingCourse : "1 to many"
-StudentTrainingCourse }-- TrainingCourse
-TrainingCourse --{ TrainerTrainingCourse : "1 to many"
-TrainerTrainingCourse }-- Trainer
-TrainerTrainingCourse }-- TrainingCourse
-Module -- DailyUsageStatistic : "1 to many"
-Module --{ TrainingCourse : "1 to many"
-Module --{ Trainer : "1 to many"
+User --{ StudentEnrollment : "1 to many"
+
+VMType --{ VirtualMachine : "1 to many"
+VMImageReference --{ VirtualMachine : "1 to many"
+VMUsageProperties --{ VirtualMachine : "1 to many"
+VMProperties --{ VirtualMachine : "1 to many"
+SSHFile --{ VirtualMachine : "1 to many"
+RDPFile --{ VirtualMachine : "1 to many"
+
+VirtualMachine -- StudentEnrollment : "(Assigned to)"
+
+RegisteredModule -- DailyUsageStatistic : "1 to many"
+
+RegisteredCourse )-- User : "(Trainer link)"
+RegisteredCourse --{ StudentEnrollment : "1 to many"
+RegisteredCourse --{ RegisteredModule : "1 to many"
 @enduml
