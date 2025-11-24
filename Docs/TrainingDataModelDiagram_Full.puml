@@ -147,8 +147,8 @@ VMType --{ VirtualMachine : "1 to many"
 VMImageReference --{ VirtualMachine : "1 to many"
 VMUsageProperties --{ VirtualMachine : "1 to many"
 VMProperties --{ VirtualMachine : "1 to many"
-SSHFile --{ VirtualMachine : "1 to many"
-RDPFile --{ VirtualMachine : "1 to many"
+SSHFile -- VirtualMachine : "(Assigned to)"
+RDPFile -- VirtualMachine : "(Assigned to)"
 
 VirtualMachine -- StudentEnrollment : "(Assigned to)"
 
